@@ -17,7 +17,7 @@ Ultimately, helping you maintain and start off with a secure environment for you
 ## 🔥 Usage 🔥
 Be sure to have a secure way to transfer keys to and from the system. In most cases, it is easiest to use your initial root login credentials to create SSH keys for a new user, and then use `ssh-copy-id` to transfer the keys to the new user.
 
-The default port is `1337`, but be sure to change it in the `lock-figuration.sh` file if you want to use a different port.
+The default port is `13337`, but be sure to change it in the `lock-figuration.sh` file if you want to use a different port.
 
 ## Connecting to the VPS
 `ssh -p <port> -i <private_key_here> user@<server_address>`
