@@ -22,3 +22,6 @@ The default port is `1337`, but be sure to change it in the `lock-figuration.sh`
 ## Connecting to the VPS
 `ssh -p <port> -i <private_key_here> user@<server_address>`
 
+## Future
+Let me know if I should add anything else!
+
