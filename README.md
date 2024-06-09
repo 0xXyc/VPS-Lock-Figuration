@@ -6,6 +6,14 @@ This is a neat little BASH script that should be ran immediately after your VPS 
 It will help deploy most known best security practices to date. 
 Ultimately, helping you maintain and start off with a secure environment for your VPS!
 
+## Best Practices Deployed 📋
+  1. Update system packages.
+	2.	Create a new user with sudo privileges.
+	3.	Set up a firewall using UFW to allow only inbound SSH on port 13337 (by default) .
+	4.	Disable root login and password authentication via SSH.
+	5.	Install and configure Fail2Ban.
+	6.	Enable automatic security updates.
+
 ## 🔥 Usage 🔥
 Be sure to have a secure way to transfer keys to and from the system. In most cases, it is easiest to use your initial root login credentials to create SSH keys for a new user, and then use `ssh-copy-id` to transfer the keys to the new user.
 
