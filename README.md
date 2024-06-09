@@ -1,5 +1,5 @@
 # 💻 VPS-Lock-Figuration ~ Designed to Configure your VPS with a Locked Tight Configuration 🔐
-<img width="387" alt="image" src="https://github.com/0xXyc/VPS-Lock-Figuration/assets/42036798/fa74ff6c-903b-46f0-878e-391526c43c31">
+<img width="1266" alt="image" src="https://github.com/0xXyc/VPS-Lock-Figuration/assets/42036798/bdf4bd83-4ed1-4e40-bbe9-062fff3041f8">
 
 ## ✅ Deploy VPS Best Practices in the Click of a few Buttons!! 🤓
 This is a neat little BASH script that should be ran immediately after your VPS boots up the first time. 
