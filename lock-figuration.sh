@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# BASH Script to help speed up secure deployments for cloud environments, specifically VPS's.
+
 # Define color codes
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -27,6 +29,8 @@ echo -e "${GREEN}
    VPS Lock-Figuration ~ By Xyco
 ${NC}"
 
+sleep 3
+
 # Update system packages
 echo -e "${YELLOW}Updating system packages...${NC}"
 apt update && apt upgrade -y
@@ -41,6 +45,7 @@ check_command "Add user"
 # Add new user to sudo group
 usermod -aG sudo $NEW_USER
 check_command "Add user to sudo group"
+echo -e "${YELLOW}[+] New User, $NEW_USER, has been created!${NC}"
 
 # Set up UFW firewall
 echo -e "${YELLOW}Setting up UFW firewall...${NC}"
@@ -69,6 +74,7 @@ echo -e "${YELLOW}Installing and configuring Fail2Ban...${NC}"
 apt install -y fail2ban
 check_command "Fail2Ban installation"
 
+echo -e "${YELLOW}Configuring JAIL...${NC}"
 cat <<EOF > /etc/fail2ban/jail.local
 [DEFAULT]
 bantime  = 600m
@@ -81,6 +87,7 @@ port = 13337
 logpath = /var/log/auth.log
 EOF
 
+echo -e "${YELLOW}Restarting fail2ban...${NC}"
 systemctl restart fail2ban
 check_command "Fail2Ban configuration"
 
@@ -88,6 +95,7 @@ check_command "Fail2Ban configuration"
 echo -e "${YELLOW}Enabling automatic security updates...${NC}"
 apt install -y unattended-upgrades
 check_command "Unattended upgrades installation"
+echo -e "${YELLOW}[+] Updates complete!${NC}"
 
 dpkg-reconfigure --priority=low unattended-upgrades
 check_command "Unattended upgrades configuration"
@@ -98,5 +106,5 @@ echo -e "${RED}Via "touch authorized_keys" ...${NC}"
 echo -e "${RED}Now, generate a new SSH key for the new user on your local machine and add the public key to authorized_keys on the VPS...${NC}"
 
 # Display completion message
-echo -e "${GREEN}VPS security setup is complete. Password login is disabled.${NC}"
-echo -e "${GREEN}Remember to log in using: ssh -p 13337 -i <id_rsa> $NEW_USER@<server_ip>${NC}"
+echo -e "${GREEN}[+] VPS security setup is complete. Password login is disabled.${NC}"
+echo -e "${YELLOW} [!] Remember to log in using: ssh -p 13337 -i <id_rsa> $NEW_USER@<server_ip>${NC}"
