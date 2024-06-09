@@ -1,4 +1,5 @@
 # 💻 VPS-Lock-Figuration 🔐
+## ✅ Deploy VPS Best Practices in the Click of a few Buttons!! 🤓
 ## Introduction
 This is a neat little BASH script that should be ran immediately after your VPS boots up the first time. 
 It will help deploy most known best security practices to date. 
