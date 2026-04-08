@@ -25,6 +25,16 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
+# Detect SSH service name (Debian uses "ssh", older/RHEL uses "sshd")
+if systemctl list-unit-files ssh.service &>/dev/null; then
+  SSH_SERVICE="ssh"
+elif systemctl list-unit-files sshd.service &>/dev/null; then
+  SSH_SERVICE="sshd"
+else
+  echo -e "${RED}Error: Could not find SSH systemd service. Exiting.${NC}"
+  exit 1
+fi
+
 # Display banner
 echo -e "${GREEN}
    :::     :::       :::::::::       ::::::::        :::        ::::::::       ::::::::       :::    :::
@@ -38,7 +48,9 @@ echo -e "${GREEN}
    VPS Lock-Figuration ~ By Xyco
 ${NC}"
 
-sleep 3
+echo -e "${YELLOW}[*] Detected SSH service: $SSH_SERVICE${NC}"
+echo -e "${YELLOW}[*] SSH port will be set to: $SSH_PORT${NC}"
+sleep 2
 
 # Update system packages
 echo -e "${YELLOW}Updating system packages...${NC}"
@@ -80,16 +92,7 @@ else
   fi
 fi
 
-# Set up UFW firewall
-echo -e "${YELLOW}Setting up UFW firewall...${NC}"
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow "$SSH_PORT/tcp"
-ufw --force enable
-ufw status
-check_command "UFW setup"
-
-# Disable root login and configure SSH
+# Configure SSH FIRST (before firewall) so sshd_config is valid when UFW enables
 echo -e "${YELLOW}Configuring SSH...${NC}"
 SSH_CONFIG="/etc/ssh/sshd_config"
 cp "$SSH_CONFIG" "$SSH_CONFIG.bak"
@@ -104,8 +107,42 @@ grep -q "^PermitRootLogin" "$SSH_CONFIG" || echo "PermitRootLogin no" >> "$SSH_C
 grep -q "^Port " "$SSH_CONFIG" || echo "Port $SSH_PORT" >> "$SSH_CONFIG"
 grep -q "^PasswordAuthentication" "$SSH_CONFIG" || echo "PasswordAuthentication no" >> "$SSH_CONFIG"
 
-systemctl reload sshd
-check_command "SSH configuration"
+# Validate the config BEFORE restarting — if sshd -t fails, don't touch the running service
+echo -e "${YELLOW}Validating SSH config...${NC}"
+if ! sshd -t; then
+  echo -e "${RED}Error: sshd_config validation failed. Restoring backup.${NC}"
+  cp "$SSH_CONFIG.bak" "$SSH_CONFIG"
+  exit 1
+fi
+echo -e "${GREEN}[+] SSH config valid${NC}"
+
+# Install and configure UFW (in case it's not already there)
+echo -e "${YELLOW}Setting up UFW firewall...${NC}"
+if ! command -v ufw >/dev/null 2>&1; then
+  apt install -y ufw
+  check_command "UFW installation"
+fi
+
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow "$SSH_PORT/tcp"
+ufw --force enable
+ufw status
+check_command "UFW setup"
+
+# Now restart SSH — firewall already allows the new port
+echo -e "${YELLOW}Restarting SSH on port $SSH_PORT...${NC}"
+systemctl restart "$SSH_SERVICE"
+check_command "SSH restart"
+
+# Verify SSH is actually listening on the new port
+sleep 2
+if ss -tlnp | grep -q ":$SSH_PORT "; then
+  echo -e "${GREEN}[+] SSH is listening on port $SSH_PORT${NC}"
+else
+  echo -e "${RED}[!] WARNING: SSH does not appear to be listening on port $SSH_PORT${NC}"
+  echo -e "${RED}    DO NOT close this session until you verify you can log in with the new config.${NC}"
+fi
 
 # Install and configure Fail2Ban
 echo -e "${YELLOW}Installing and configuring Fail2Ban...${NC}"
@@ -123,6 +160,7 @@ maxretry = 5
 enabled = true
 port = $SSH_PORT
 logpath = /var/log/auth.log
+backend = systemd
 EOF
 
 echo -e "${YELLOW}Restarting fail2ban...${NC}"
