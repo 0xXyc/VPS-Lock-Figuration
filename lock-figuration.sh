@@ -176,6 +176,17 @@ echo -e "${YELLOW}[+] Updates complete!${NC}"
 dpkg-reconfigure --priority=low unattended-upgrades
 check_command "Unattended upgrades configuration"
 
+# Configure auto-reboot when kernel/security updates land.
+# Default unattended-upgrades does NOT reboot, leaving stale kernels running.
+echo -e "${YELLOW}Configuring unattended-upgrades auto-reboot...${NC}"
+cat > /etc/apt/apt.conf.d/52unattended-upgrades-reboot <<EOF
+// Added by lock-figuration.sh
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+EOF
+echo -e "${GREEN}[+] Auto-reboot scheduled for 04:00 when needed${NC}"
+
 # Display completion message
 echo -e "${GREEN}[+] VPS security setup is complete. Password login is disabled.${NC}"
 echo -e "${YELLOW} [!] Remember to log in using: ssh -p $SSH_PORT -i <id_rsa> $NEW_USER@<server_ip>${NC}"
